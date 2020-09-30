@@ -22,7 +22,7 @@ resource "random_string" "password" {
   lower   = true
   number  = true
 }
-
+# Создаем VPC
 resource "hcloud_server" "node1" {
   name        = "${element(var.domains, count.index)}.oxlamons.devops.rebrain.srwx.net"
   count       = "${length(var.domains)}"
@@ -60,11 +60,12 @@ provider "aws" {
   secret_key = var.secret_key
   region     = var.aws_region
 }
+# Создаем route53  и привязываем VPC
 data "aws_route53_zone" "selected" {
   name = "devops.rebrain.srwx.net"
 }
 resource "aws_route53_record" "www" {
-  count   = 1
+  count   = "${length(var.domains)}"
   zone_id = data.aws_route53_zone.selected.zone_id
   name    = "oxlamons.${data.aws_route53_zone.selected.name}"
   type    = "A"
@@ -80,6 +81,6 @@ output "server_id_node1" {
   value       = hcloud_server.node1.*.id
   description = "ID"
 }
-output "random_string" {
-  value = hcloud_server.node1_random_string.paswword.*.result
+output "sever_password_node1" {
+  value = random_string.password.*.result
 }
