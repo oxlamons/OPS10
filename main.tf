@@ -2,6 +2,7 @@ provider "hcloud" {
   token = var.hcloud_token
   #base_url = "https://api.hetzner.cloud/v1/"
 }
+# Генерируется пароль
 resource "random_password" "password" {
   count   = "${length(var.domains)}"
   length  = "10"
@@ -21,8 +22,6 @@ resource "hcloud_ssh_key" "anton" {
     "email" : "oxlamons_at_gmail_com"
   }
 }
-# Генерируется пароль
-
 # Создаем VPC
 resource "hcloud_server" "renode1" {
   count       = "${length(var.domains)}"
@@ -32,9 +31,7 @@ resource "hcloud_server" "renode1" {
   ssh_keys = [hcloud_ssh_key.anton.id,
   data.hcloud_ssh_key.rebrain_ssh_key.name]
 
-
   #Меняем пароль root на указаный в переменных и подключаюсь к VPC
-
   provisioner "remote-exec" {
     inline = [
       "echo root:${random_password.password[count.index].result} | chpasswd"
@@ -44,7 +41,6 @@ resource "hcloud_server" "renode1" {
       user        = "root"
       private_key = file("~/.ssh/id_rsa")
       host        = self.ipv4_address
-
     }
   }
   provisioner "local-exec" {
@@ -79,7 +75,6 @@ resource "aws_route53_record" "www" {
 output "server_ip_renode1" {
   value = hcloud_server.renode1.*.ipv4_address
 }
-
 output "server_id_renode1" {
   value       = hcloud_server.renode1.*.id
   description = "ID"
